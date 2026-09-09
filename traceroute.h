@@ -6,12 +6,19 @@
 #include <string.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <netinet/udp.h>
 #include <unistd.h>
+#include <errno.h>
+
+#define TTL_MAX 64
 
 typedef struct {
-    int fd;
-    char hostname[NI_MAXHOST];
-    char ip[INET_ADDRSTRLEN];
+    int udpsock;
+    int icmpsock;
+    char hostname[NI_MAXHOST + 1];
+    char ip[INET_ADDRSTRLEN + 1];
     struct sockaddr_in addr;
     unsigned int ttl;
 } Host;
