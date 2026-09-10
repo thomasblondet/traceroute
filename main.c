@@ -74,7 +74,7 @@ void get_response(Host *h, struct timeval *start_time, size_t nquery) {
 	ssize_t n = recvfrom(h->icmpsock, buf, IP_MAXPACKET, 0, (struct sockaddr *)&from, &len);
 	if (n < 0) {
 		if (errno == EWOULDBLOCK || errno == EAGAIN)
-			fprintf(stdout, " *%c", nquery == NUM_QUERIES - 1 ? '\n' : ' ');
+			fprintf(stdout, "  *%c", nquery == NUM_QUERIES - 1 ? '\n' : ' ');
 		else
 			fatal("recvfrom");
 		return;
@@ -89,7 +89,7 @@ void get_response(Host *h, struct timeval *start_time, size_t nquery) {
 		snprintf(hop, 2, "?");
 
 	if (nquery == 0)
-		fprintf(stdout, " %s", hop);
+		fprintf(stdout, "  %s ", hop);
 
 	fprintf(stdout, " %.3f ms%c", time_diff(start_time, &end_time),
 			nquery == NUM_QUERIES - 1 ? '\n' : ' ');
@@ -112,15 +112,22 @@ void init_socket(Host *h) {
 
 void trace_route(Host *h) {
 	init_socket(h);
-	while (h->ttl < TTL_MAX) {
-		fprintf(stdout, "%d", h->ttl);
+
+	fprintf(stdout, "traceroute to %s (%s), %d hops max, 40 byte packets\n",
+			h->hostname, h->ip, MAX_HOPS);
+
+	while (h->ttl < MAX_HOPS) {
+		fprintf(stdout, "%2d", h->ttl);
 		if (setsockopt(h->udpsock, IPPROTO_IP, IP_TTL, &h->ttl, sizeof(h->ttl)) < 0)
 			fatal("setsockopt");
+
 		for (size_t i = 0; i < NUM_QUERIES; i++) {
 			struct timeval start_time;
 			gettimeofday(&start_time, NULL);
+
 			send_packet(h);
 			get_response(h, &start_time, i);
+
 			if (g_reached == 1 && i == NUM_QUERIES - 1)
 				return;
 		}

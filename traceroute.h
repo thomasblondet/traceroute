@@ -13,7 +13,7 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#define TTL_MAX 64
+#define MAX_HOPS 64
 #define NUM_QUERIES 3
 
 typedef struct {
