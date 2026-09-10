@@ -61,7 +61,12 @@ void parse_packet(uint8_t *buf) {
 	g_reached = 1;
 }
 
-void get_response(Host *h) {
+double time_diff(struct timeval *start, struct timeval *end) {
+	return ((end->tv_sec * 1000.0) + (end->tv_usec / 1000.0))
+		- ((start->tv_sec * 1000.0) + (start->tv_usec / 1000.0));
+}
+
+void get_response(Host *h, struct timeval *start_time) {
 	uint8_t buf[IP_MAXPACKET];
 
 	struct sockaddr_in from;
@@ -75,12 +80,16 @@ void get_response(Host *h) {
 		return;
 	}
 
+	struct timeval end_time;
+	gettimeofday(&end_time, NULL);
+
 	// get the hop (router) ip address
 	char hop[INET_ADDRSTRLEN + 1] = {0};
 	if (getnameinfo((struct sockaddr *)&from, len, hop, INET_ADDRSTRLEN, NULL, 0, NI_NUMERICHOST) != 0)
 		snprintf(hop, 2, "?");
 
-	fprintf(stdout, " %s\n", hop);
+	fprintf(stdout, " %s ", hop);
+	fprintf(stdout, "%.3f ms\n", time_diff(start_time, &end_time));
 	parse_packet(buf);
 }
 
@@ -104,8 +113,11 @@ void trace_route(Host *h) {
 		fprintf(stdout, "%d", h->ttl);
 		if (setsockopt(h->udpsock, IPPROTO_IP, IP_TTL, &h->ttl, sizeof(h->ttl)) < 0)
 			fatal("setsockopt");
+
+		struct timeval start_time;
+		gettimeofday(&start_time, NULL);
 		send_packet(h);
-		get_response(h);
+		get_response(h, &start_time);
 		if (g_reached == 1)
 			break;
 		h->ttl++;

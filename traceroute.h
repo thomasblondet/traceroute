@@ -11,6 +11,7 @@
 #include <netinet/udp.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/time.h>
 
 #define TTL_MAX 64
 
