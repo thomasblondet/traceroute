@@ -144,10 +144,17 @@ int main(int argc, char *argv[]) {
 		.addr = {0},
 		.ttl = 1
     };
-    (void)argc;
-    memcpy(h.hostname, argv[1], strlen(argv[1]));
+	
+	if (argc != 2) {
+		fprintf(stderr, "Usage: ./traceroute hostname\n");
+		return 1;
+	}
+
+	memcpy(h.hostname, argv[1], strlen(argv[1]));
+
     hostname_resolution(&h);
 	trace_route(&h);
+
 	close(h.udpsock);
 	close(h.icmpsock);
     return 0;
