@@ -2,13 +2,15 @@
 
 static int g_reached = 0;
 
-static void fatal(const char *str) {
+static void fatal(const char *str)
+{
     fprintf(stderr, "traceroute: ");
     perror(str);
     exit(1);
 }
 
-static void hostname_resolution(Host *h) {
+static void hostname_resolution(Host *h)
+{
     const struct addrinfo hints = {
         .ai_flags = 0,
         .ai_family = AF_INET,
@@ -34,7 +36,8 @@ static void hostname_resolution(Host *h) {
     freeaddrinfo(res);
 }
 
-void send_packet(Host *h) {
+void send_packet(Host *h)
+{
 	const char *message = "hello world";
 
 	if (sendto(h->udpsock, message, sizeof(message), 0, (struct sockaddr *)&h->addr,
@@ -42,7 +45,8 @@ void send_packet(Host *h) {
 		fatal("sendto");
 }
 
-void parse_packet(uint8_t *buf) {
+void parse_packet(uint8_t *buf)
+{
 	struct ip *outer_ip = (struct ip *)buf;
 	size_t outer_ip_len = outer_ip->ip_hl * 4;
 	struct icmp *outer_icmp = (struct icmp *)(buf + outer_ip_len);
@@ -61,12 +65,14 @@ void parse_packet(uint8_t *buf) {
 	g_reached = 1;
 }
 
-double time_diff(struct timeval *start, struct timeval *end) {
+double time_diff(struct timeval *start, struct timeval *end)
+{
 	return ((end->tv_sec * 1000.0) + (end->tv_usec / 1000.0))
 		- ((start->tv_sec * 1000.0) + (start->tv_usec / 1000.0));
 }
 
-void get_response(Host *h, struct timeval *start_time, size_t nquery) {
+void get_response(Host *h, struct timeval *start_time, size_t nquery)
+{
 	uint8_t buf[IP_MAXPACKET];
 
 	struct sockaddr_in from;
@@ -96,7 +102,8 @@ void get_response(Host *h, struct timeval *start_time, size_t nquery) {
 	parse_packet(buf);
 }
 
-void init_socket(Host *h) {
+void init_socket(Host *h)
+{
 	h->udpsock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (h->udpsock < 0)
 		fatal("socket");
@@ -110,7 +117,8 @@ void init_socket(Host *h) {
 		fatal("setsockopt");
 }
 
-void trace_route(Host *h) {
+void trace_route(Host *h)
+{
 	init_socket(h);
 
 	fprintf(stdout, "traceroute to %s (%s), %d hops max, 40 byte packets\n",
@@ -135,7 +143,8 @@ void trace_route(Host *h) {
 	}
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     Host h = {
 		.udpsock = -1,
 		.icmpsock = -1,
@@ -144,7 +153,7 @@ int main(int argc, char *argv[]) {
 		.addr = {0},
 		.ttl = 1
     };
-	
+
 	if (argc != 2) {
 		fprintf(stderr, "Usage: ./traceroute hostname\n");
 		return 1;
